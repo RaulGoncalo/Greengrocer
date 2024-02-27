@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:quitanda/src/config/custom_colors.dart';
 import 'package:quitanda/src/models/item_model.dart';
+import 'package:quitanda/src/pages/base/cart/controller/cart_controller.dart';
+import 'package:quitanda/src/pages/base/controller/navigation_controller.dart';
 import 'package:quitanda/src/pages/common_widgets/quantity_widget.dart';
 import 'package:quitanda/src/services/utils_services.dart';
 
 class ProductScreen extends StatefulWidget {
-  const ProductScreen({required this.item, super.key});
+  ProductScreen({super.key});
 
-  final ItemModel item;
+  final ItemModel item = Get.arguments;
 
   @override
   State<ProductScreen> createState() => _ProductScreenState();
@@ -17,6 +20,9 @@ class _ProductScreenState extends State<ProductScreen> {
   final UtilsServices _utilsServices = UtilsServices();
 
   int cartItemQuantity = 1;
+  final navigationController = Get.find<NavigationController>();
+
+  final cartController = Get.find<CartController>();
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +36,7 @@ class _ProductScreenState extends State<ProductScreen> {
             Expanded(
                 child: Hero(
                     tag: widget.item.imgUrl,
-                    child: Image.asset(widget.item.imgUrl))),
+                    child: Image.network(widget.item.imgUrl))),
             Expanded(
               child: Container(
                 padding: const EdgeInsets.all(32),
@@ -50,12 +56,13 @@ class _ProductScreenState extends State<ProductScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          widget.item.name,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 2,
-                          style: const TextStyle(
-                              fontSize: 27, fontWeight: FontWeight.bold),
+                        Expanded(
+                          child: Text(
+                            widget.item.name,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontSize: 27, fontWeight: FontWeight.bold),
+                          ),
                         ),
                         QuantityWidget(
                           suffixText: widget.item.unit,
@@ -99,7 +106,17 @@ class _ProductScreenState extends State<ProductScreen> {
                         style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15))),
-                        onPressed: () {},
+                        onPressed: () {
+                          Get.back();
+                          //adicionar o produto no carrinho
+                          cartController.addItemToCart(
+                            item: widget.item,
+                            quantity: cartItemQuantity,
+                          );
+
+                          navigationController
+                              .navigatePageView(NavigationTabs.cart);
+                        },
                         label: const Text(
                           "Adicionar ao carrinho",
                           style: TextStyle(

@@ -2,10 +2,13 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quitanda/src/pages/auth/controller/auth_controller.dart';
+import 'package:quitanda/src/pages/auth/screens/components/forgot_password_dialog.dart';
 import 'package:quitanda/src/pages/common_widgets/app_name_widget.dart';
 import 'package:quitanda/src/pages/common_widgets/custom_text_field.dart';
 import 'package:quitanda/src/config/custom_colors.dart';
 import 'package:quitanda/src/routes/app_pages.dart';
+import 'package:quitanda/src/services/utils_services.dart';
+import 'package:quitanda/src/services/validators.dart';
 
 class SignInScreen extends StatelessWidget {
   SignInScreen({super.key});
@@ -13,6 +16,7 @@ class SignInScreen extends StatelessWidget {
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final UtilsServices utilsServices = UtilsServices();
 
   @override
   Widget build(BuildContext context) {
@@ -78,15 +82,7 @@ class SignInScreen extends StatelessWidget {
                         label: "Email",
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,
-                        validator: (email) {
-                          if (email == null || email.isEmpty) {
-                            return "Digite seu e-mail";
-                          }
-
-                          if (!email.isEmail) return "Digite um e-mail válido";
-
-                          return null;
-                        },
+                        validator: emailValidator,
                       ),
 
                       //Senha
@@ -95,17 +91,7 @@ class SignInScreen extends StatelessWidget {
                         label: "Senha",
                         controller: passwordController,
                         isSecret: true,
-                        validator: (password) {
-                          if (password == null || password.isEmpty) {
-                            return "Digite sua senha.";
-                          }
-
-                          if (password.length < 7) {
-                            return "Digite uma senha com pelo menos 7 caracteres.";
-                          }
-
-                          return null;
-                        },
+                        validator: passwordValidator,
                       ),
 
                       //Botão entrar
@@ -124,13 +110,10 @@ class SignInScreen extends StatelessWidget {
                                         String password =
                                             passwordController.text;
 
-                                        authController.sign(
+                                        authController.signIn(
                                           email: email,
                                           password: password,
                                         );
-                                        //Get.offNamed(PagesRoutes.baseRoute);
-                                      } else {
-                                        print("Campos não estão validos");
                                       }
                                     },
                               style: ElevatedButton.styleFrom(
@@ -151,7 +134,24 @@ class SignInScreen extends StatelessWidget {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                            onPressed: () {},
+                            onPressed: () async {
+                              final bool? result = await showDialog(
+                                context: context,
+                                builder: (_) {
+                                  return ForgotPasswordDialog(
+                                      email: emailController.text);
+                                },
+                              );
+
+                              if (result ?? false) {
+                                // ignore: use_build_context_synchronously
+                                utilsServices.showCustomToast(
+                                  message:
+                                      'Um link de recuperação foi enviado para seus e-mail.',
+                                  context: context,
+                                );
+                              }
+                            },
                             child: Text(
                               "Esqueceu a senha?",
                               style: TextStyle(
